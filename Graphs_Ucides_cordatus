@@ -1,0 +1,377 @@
+#Libraries
+library(ggplot2)
+library(Rmisc)
+
+#load data sets
+setwd("F:/Abiotic dataset/graphs tests")
+setwd("/Volumes/GoogleDrive/Shared Drives/TrEnCh/Projects/Murilo/Data for graphs Ucides cordatus/")
+dir()
+rcp4.5=read.table("timeseriesRCP4.5.txt",header=T)
+rcp8.5=read.table("timeseriesRCP8.5.txt",header=T)
+hist_surv=read.table("hist_surv_each_10y.txt",header=T)
+hist_devel=read.table("hist_devel_each_10y.txt",header=T) 
+hist_surv_devel=read.table("hist_surv_devel_each_10y.txt",header=T)
+rcp4.5_surv= read.table("RCP4.5_survival_each_10y.txt",header=T)
+rcp8.5_surv= read.table("RCP8.5_survival_each_10y.txt",header=T)
+rcp4.5_devel=read.table("RCP4.5_devel_each_10y.txt",header=T)
+rcp8.5_devel=read.table("RCP8.5_devel_each_10y.txt",header=T)
+rcp4.5_temp=read.table("RCP4.5_temp_each_10y.txt",header=T)
+rcp8.5_temp=read.table("RCP8.5_temp_each_10y.txt",header=T)
+
+###historic data
+##surv and devel 1982-1991
+plot=ggplot(hist_surv_devel, aes(x = Latitude, y = Surv_1982_1991, color="Surv_1982_1991",group=1)) + geom_line()
+plot=plot+scale_x_continuous(breaks = seq(32,193, by=40))
+plot=plot + geom_line(aes(y = Devel_1982_1991/54,color="Devel_1982_1991",group=2))
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25), sec.axis = sec_axis(~ . *54,name = "Devel_1982_1991"))
+plot=plot+labs(y = "Survival proba",
+               x = "Years",
+               colour = "Parameter")
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25), sec.axis = sec_axis(~ . *54,name = "Devel time (days)"))
+
+## 1992-2001
+plot=ggplot(hist_surv_devel, aes(x = Latitude, y = Surv_1992_2001, color="Surv_1992_2001",group=1)) + geom_line()
+plot=plot+scale_x_continuous(breaks = seq(32,193, by=40))
+plot=plot + geom_line(aes(y = Devel_1992_2001/54,color="Devel_1992_2001",group=2))
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25), sec.axis = sec_axis(~ . *54,name = "Devel_1992_2001"))
+plot=plot+labs(y = "Survival proba",
+               x = "Years",
+               colour = "Parameter")
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25), sec.axis = sec_axis(~ . *54,name = "Devel time (days)"))
+
+## 2002-2011
+plot=ggplot(hist_surv_devel, aes(x = Latitude, y = Surv_2002_2011, color="Surv_2002_2011",group=1)) + geom_line()
+plot=plot+scale_x_continuous(breaks = seq(32,193, by=40))
+plot=plot + geom_line(aes(y = Devel_2002_2011/54,color="Devel_2002_2011",group=2))
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25),sec.axis = sec_axis(~ . *54,name = "Devel_1992_2001"))
+plot=plot+labs(y = "Survival proba",
+               x = "Years",
+               colour = "Parameter")
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25),sec.axis = sec_axis(~ . *54,name = "Devel time (days)"))
+
+## 2012-2018
+plot=ggplot(hist_surv_devel, aes(x = Latitude, y = Surv_2012_2019, color="Surv_2012_2019",group=1)) + geom_line()
+plot=plot+scale_x_continuous(breaks = seq(32,193, by=40))
+plot=plot + geom_line(aes(y = Devel_2012_2019/54,color="Devel_2012_2019",group=2))
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25),sec.axis = sec_axis(~ . *54,name = "Devel_2012_2019"))
+plot=plot+labs(y = "Survival proba",
+               x = "Years",
+               colour = "Parameter")
+plot + scale_y_continuous(breaks = seq(0,1, by=0.25),sec.axis = sec_axis(~ . *54,name = "Devel time (days)"))
+
+
+######plot RCP4.5########
+#survival
+#2016-25
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_16_25, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_16_25,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_16_25,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2026-35
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_26_35, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_26_35,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_26_35,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2036-45
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_36_45, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_36_45,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_36_45,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = c(0.35,0.40,0.45,0.5))
+plot
+#2046-55
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_46_55, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_46_55,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_46_55,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2056-65
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_56_65, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_56_65,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_56_65,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = c(0.35,0.40,0.45,0.5))
+plot
+#2066-75
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_66_75, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_66_75,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_66_75,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = c(0.35,0.40,0.45,0.5))
+plot
+#2076-85
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_76_85, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_76_85,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_76_85,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2086-95
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_86_95, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_86_95,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_86_95,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = c(0.35,0.40,0.45,0.5))
+plot
+#2096-99
+plot=ggplot(rcp4.5_surv, aes(x = Latitude, y = Survival_ACCESS_96_00, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_96_00,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_96_00,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+
+######plot RCP8.5########
+#survival
+#2016-25
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_16_25, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_16_25,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_16_25,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(0,1, by=0.25))
+plot
+#2026-35
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_26_35, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_26_35,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_26_35,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2036-45
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_36_45, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_36_45,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_36_45,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2046-55
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_46_55, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_46_55,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_46_55,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = c(0.35,0.40,0.45,0.5))
+plot
+#2056-65
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_56_65, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_56_65,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_56_65,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2066-75
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_66_75, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_66_75,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_66_75,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(0,1, by=0.25))
+plot
+#2076-85
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_76_85, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_76_85,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_76_85,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(0,1, by=0.25))
+plot
+#2086-95
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_86_95, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_86_95,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_86_95,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = c(0.35,0.40,0.45,0.5))
+plot
+#2096-00
+plot=ggplot(rcp8.5_surv, aes(x = Latitude, y = Survival_ACCESS_96_00, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Survival_MRI_96_00,color="MRI"))
+plot=plot+geom_line(aes(y = Survival_CNRM_96_00,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(0,1, by=0.25))
+plot
+
+#devel
+#2016-25
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_16_25, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_16_25,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_16_25,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2026-35
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_26_35, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_26_35,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_26_35,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2036-45
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_36_45, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_36_45,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_36_45,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2046-55
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_46_55, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_46_55,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_46_55,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2056-65
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_56_65, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_56_65,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_56_65,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(20,30, by=5))
+plot
+#2066-75
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_66_75, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_66_75,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_66_75,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot
+#2076-85
+plot=ggplot(rcp4.5_devel, aes(x = Latitude, y = Devel_ACCESS_76_85, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_76_85,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_76_85,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(20,30, by=5))
+plot
+#2086-95
+plot=ggplot(rcp8.5_devel, aes(x = Latitude, y = Devel_ACCESS_86_95, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_86_95,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_86_95,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(20,30, by=5))
+plot
+#2096-00
+plot=ggplot(rcp8.5_devel, aes(x = Latitude, y = Devel_ACCESS_96_00, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Devel_MRI_96_00,color="MRI"))
+plot=plot+geom_line(aes(y = Devel_CNRM_96_00,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(20,30, by=5))
+plot
+
+#temp
+#2016-2025
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_16_25, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_16_25,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_16_25,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2026-2035
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_26_35, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_26_35,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_26_35,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2036-2045
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_36_45, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_36_45,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_36_45,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2046-2055
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_46_55, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_46_55,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_46_55,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2056-2065
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_56_65, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_56_65,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_56_65,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2066-2075
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_66_75, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_66_75,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_66_75,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2076-2085
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_76_85, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_76_85,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_76_85,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2086-2095
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_86_95, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_86_95,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_86_95,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+#2096-2099
+plot=ggplot(rcp4.5_temp, aes(x = Latitude, y = Temp_ACCESS_96_00, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_96_00,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_96_00,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,32, by=2))
+plot
+
+######plot RCP8.5########
+#survival
+#temp
+#2016-2025
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_16_25, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_16_25,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_16_25,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2026-2035
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_26_35, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_26_35,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_26_35,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2036-2045
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_36_45, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_36_45,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_36_45,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2046-2055
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_46_55, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_46_55,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_46_55,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2056-2065
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_56_65, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_56_65,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_56_65,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2066-2075
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_66_75, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_66_75,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_66_75,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2076-2085
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_76_85, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_76_85,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_76_85,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2086-2095
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_86_95, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_86_95,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_86_95,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
+#2096-2099
+plot=ggplot(rcp8.5_temp, aes(x = Latitude, y = Temp_ACCESS_96_00, color="ACESSS",group=1)) + geom_line()
+plot=plot+geom_line(aes(y = Temp_MRI_96_00,color="MRI"))
+plot=plot+geom_line(aes(y = Temp_CNRM_96_00,color="CNRM"))
+plot=plot+scale_x_continuous(breaks = c(9,28,58,89,108), labels = c(9,28,58,89,108))
+plot=plot+scale_y_continuous(breaks = seq(22,34, by=2))
+plot
