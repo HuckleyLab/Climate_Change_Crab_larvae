@@ -1,0 +1,281 @@
+####libraries####
+library(ncdf4)
+library(fields)
+library(abind)
+library(maptools)
+################
+
+#set directory
+setwd("/Volumes/GoogleDrive/Shared Drives/TrEnCh/Projects/Murilo/Sea_surface_daily_temp/Sea surface daily mean temp/")
+setwd ("F:/Abiotic dataset/SST/historic data/NOAA/Sea surface daily mean temp")
+
+#Set species' parameters Menippe nodifrons
+To=9.8846 ###lower developmental temperature
+G=384.6154 ### daily growing degree days
+
+# selecting days from October 1st to December 31th and January 1st to March 31th (information for each season) 
+inds=cbind(c(1,92),c(91,242))
+times4=c(1:242)
+
+#load data from 1982 to 2016 year by year - resolution 0.25°x0.25°/daily mean
+data.1982=nc_open("sst.day.mean.1990.nc")
+data.1983=nc_open("sst.day.mean.1991.nc")
+
+#extract sst, lon, lat, time fisrt year
+temp=ncvar_get(data.1982,"sst")
+lons= ncvar_get(data.1982,"lon") #get info about long
+lats= ncvar_get(data.1982,"lat") #get info about latitude
+times= ncvar_get(data.1982,"time") #julian date, calendar day, since 1800-01-01
+times1= as.Date(times, origin="1800-01-01")#change to day of year
+times1
+
+#extract sst, lon, lat, time second year
+temp2=ncvar_get(data.1983,"sst")
+lons2= ncvar_get(data.1983,"lon") #get info about long
+lats2= ncvar_get(data.1983,"lat") #get info about latitude
+times2= ncvar_get(data.1983,"time") #julian date, calendar day, since 1800-01-01
+times3= as.Date(times2, origin="1800-01-01")#change to day of year
+times3
+
+#convert longituide
+convert.lon= function(r0) ifelse(r0 > 180, -360 + r0, r0)
+lons= convert.lon(lons)
+lons2= convert.lon(lons2)
+
+#subset data to area of interest ##
+lats.sel= which(lats> (-28) &lats<(29))#specific area of interest in atlantic ocean
+lons.sel= which(lons>(-100)&lons<(-33))#specific area of interest in atlantic ocean
+surface_temp=temp[lons.sel,lats.sel,] #using the specified area
+dim(surface_temp)
+
+lats.sel2= which(lats2> (-28) &lats2<(29))#specific area of interest in atlantic ocean
+lons.sel2= which(lons2>(-100)&lons2<(-33))#specific area of interest in atlantic ocean
+surface_temp2=temp2[lons.sel2,lats.sel2,] #using the specified area
+dim(surface_temp2)
+
+#subset
+surface_temp= surface_temp[,,245:365]
+surface_temp2= surface_temp2[,,1:121]
+
+#abind merge the two files
+temp.82_83= abind(surface_temp, surface_temp2, along=3)
+dim(temp.82_83)
+
+#for each latitude, after the last NA delete values after the 7°grid cell (approx. 200km)
+#remove pacific ocean info
+for(lat.id in 1:228){
+  na1=which.max(is.na(temp.82_83[,lat.id,]))
+  temp.82_83[1:na1,lat.id,]<-NA  
+}
+
+#delete +7 cell data from South American Atlantic coast 
+nend= dim(temp.82_83)[1]
+for(lat.id in 1:150){
+  na1= min(which(is.na(temp.82_83[,lat.id,1])))
+  #delete values before first NA
+  temp.82_83[1:na1,lat.id,]<-NA 
+  #find coast
+  coast= min(which(!is.na(temp.82_83[,lat.id,1]))) 
+  #find next island na
+  w.isl=min(which(is.na(temp.82_83[coast:nend,lat.id,1])))  
+  while( is.finite(w.isl) ){
+    #keep 7 coastal cells on each side
+    if ((coast+w.isl-7)>(coast+7)) temp.82_83[(coast+7):(coast+w.isl-7),lat.id,]<-NA
+    #find next coast
+    ind= coast+w.isl
+    coast= min(which(!is.na(temp.82_83[ind:nend,lat.id,1]))) 
+    coast= ind+coast
+    #find next island
+    w.isl=min(which(is.na(temp.82_83[coast:nend,lat.id,1])))
+  }
+  #last coastal grid cells
+  if(coast+7 <nend) temp.82_83[(coast+7):nend,lat.id,]<-NA 
+}
+
+#####removing cells by "blocks"
+for(lat.id in 151:174){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+97)<dim(temp.82_83)[1]) temp.82_83[(na2+97):dim(temp.82_83)[1],lat.id,]<-NA  
+}
+for(lat.id in 175){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+100)<dim(temp.82_83)[1]) temp.82_83[(na2+100):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 176:177){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+145)<dim(temp.82_83)[1]) temp.82_83[(na2+145):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 178:183){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+110)<dim(temp.82_83)[1]) temp.82_83[(na2+110):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 184:185){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+110)<dim(temp.82_83)[1]) temp.82_83[(na2+110):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 186:189){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+125)<dim(temp.82_83)[1]) temp.82_83[(na2+125):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 189:196){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+115)<dim(temp.82_83)[1]) temp.82_83[(na2+115):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 197:207){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+112)<dim(temp.82_83)[1]) temp.82_83[(na2+112):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 207:213){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+98)<dim(temp.82_83)[1]) temp.82_83[(na2+98):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 213:218){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+87)<dim(temp.82_83)[1]) temp.82_83[(na2+87):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 214:221){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+85)<dim(temp.82_83)[1]) temp.82_83[(na2+85):dim(temp.82_83)[1],lat.id,]<-NA
+}
+for(lat.id in 222:228){
+  na2=which.min(is.na(temp.82_83[,lat.id,]))  
+  if((na2+75)<dim(temp.82_83)[1]) temp.82_83[(na2+75):dim(temp.82_83)[1],lat.id,]<-NA
+}
+
+#update latitudes and longitudes
+lons= lons[lons.sel]
+lats= lats[lats.sel]
+lons2= lons2[lons.sel2]
+lats2= lats2[lats.sel2]
+
+#plot
+my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))#colors to use in graphs
+e<-(c(15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45))
+image.plot(lons,lats,temp.82_83[,,92], col=my.colors(34),legend.lab = "Superficial Sea Temperature",axis.args=list(at=e, labels=names(e)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
+
+###survival data Menippe nodifrons
+setwd ("F:/Abiotic dataset/Menippe nodifrons/Survival Menippe")
+dir()
+Survival_mydata<-read.table("survival_Menippe_mydata.txt",header=T)
+Survival_Scotto=read.table("survival_Menippe_Scotto_1979.txt",header=T)
+
+survi=Survival_mydata$surv
+day=Survival_mydata$day
+temperatura=Survival_mydata$temp
+
+#combine data
+names(Survival_Scotto)[3]<-"surv"
+#turn Scotto data into percent
+Survival_Scotto$surv= Survival_Scotto$surv/100
+surv.dat= rbind(Survival_Scotto, Survival_mydata)
+
+mod1= lm(surv~poly(day,4, raw=TRUE)*temp, data=Survival_mydata)
+mod1= lm(surv~ day + I(day^2) + I(day^3) + I(day^4) + temp +day:temp + I(day^2):temp + I(day^3):temp + I(day^4):temp, data=Survival_mydata)
+#check model         
+plot(day, survi)
+points(day, predict(mod1), col="red")
+#extract coefficients
+coefs= coef(mod1)
+summary(mod1)
+par(mfrow=c(2,2))
+plot(mod1)# vizualize the residuals effect and quality of the models R²=0.89
+coef.temp=-0.1332
+coef.days=9.0840
+coef.days:temp=-0.4176
+
+#survival function
+survi.function=function(day,temp){
+  surv= 2.7931035  -3.3789256*day + 1.7749461*day^2 -0.2621086*day^3 + 0.0122824*day^4 -0.0720098*temp +0.1335313*day^1*temp  -0.0693260*day^2*temp  +0.0101202*day^3*temp  -0.0004729*day^4*temp
+  #constraint from zero to 1
+  surv[surv<0]=0
+  surv[surv>1]=1
+  return(surv)  
+}
+
+
+#make arrays for output, add dimension for future periods
+#development
+devel.out= array(NA, dim=c(length(lons),length(lats),length(times4)))
+#survival
+surv.out= array(NA, dim=c(length(lons),length(lats),length(times4)))
+
+for(lon.k in 1:length(lons)){ #loop through longitude
+  lats.sel2= which(!is.na(temp.82_83[lon.k,,1]))#find latitudes with data
+  
+  if(length(lats.sel2)>0){ #check there's cells with data
+    
+    for(lat.k in lats.sel2){ #loop through latitudes with data
+      
+      for(yr.k in 1:nrow(inds)){ #loop through seasons
+        
+        #extract start and end dates
+        inds.seas= inds[yr.k,1]:inds[yr.k,2] 
+        
+        #estimate growing degree days
+        GDDs= temp.82_83[lon.k,lat.k,inds.seas]-To #how many growing degree days per day
+        #cummulative sum of GDDs
+        cumGDDs=cumsum(GDDs) 
+        
+        for(time.k in 1:length(inds.seas)){ #estimate development time starting at different days
+          
+          #substract off starting value
+          cumGDDs.t= cumGDDs-cumGDDs[time.k]
+          
+          #find first date the exceed G
+          dev.ind= which.max(cumGDDs.t>G) - time.k  #development duration
+          devel.out[lon.k,lat.k,time.k]= dev.ind
+          #To sAVE: DOY days.inds[inds.seas[dev.ind]]
+          
+          #estimate survival until reaching G
+          #mean temp
+          if(dev.ind>1){#if complex development
+            temps= mean(temp.82_83[lon.k,lat.k,inds.seas[time.k]:inds.seas[dev.ind]])
+            #estimate survival
+            surv.out[lon.k,lat.k,time.k]= survi.function(dev.ind-time.k, temps)
+          } #end check complete development
+        } #end loop timing
+      } #end loop seasons
+    }#end latitude loop
+  } #end check for data
+} #end longitude loop
+
+#plot out day to development assuming development starts on day 1 
+devel.out=replace(devel.out,devel.out<15,NA)
+e<-(c(15,17,18,19,21,23,25,27,29,31,33,35,37,39,41,43,45,50,55,60,65,70,75,80))
+image.plot(lons,lats,devel.out[,,103], col=my.colors(34),legend.lab = "days to megalopae phase",axis.args=list(at=e, labels=names(e)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
+
+#plot out corresponding survival
+#surv.out2<-replace(surv.out2, surv.out2 > 0.99 , NA)
+#surv.out2<-replace(surv.out2, surv.out2 < 0.01 , NA)
+s<-(c(0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.7,0.8,0.9,1))
+image.plot(lons,lats,surv.out[,,3],col=my.colors(1000),legend.lab = "survival to megalopae phase",axis.args=list(at=s, labels=names(s)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
+
+#mean survival, devel time and temp by row, average by year
+for (survival.loop in 1:nrow(lats)){
+  surv.mean=mean(surv.out[,survival.loop,],trim=0,na.rm=TRUE)
+  write.table(print(surv.mean),file="surv_row.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+}
+
+for (devel.time.loop in 1:nrow(lats)){
+  devel.mean=mean(devel.out[,devel.time.loop,],trim=0,na.rm=TRUE)
+  write.table(print(devel.mean),file="devel_row.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+}
+
+for (temp.loop in 1:nrow(lats)){
+  temp.mean=mean(temp.82_83[,temp.loop,1:183],trim=0,na.rm=TRUE)
+  write.table(print(temp.mean),file="temp_row.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+}
+
+#plot
+temp.out=array(temp.82_83, dim=c(length(lons),length(lats),length(times4),nrow(inds)))
+temp.lat2= apply(temp.out, MARGIN=c(1,2), FUN=mean, na.rm=TRUE)
+e<-(c(22,24,26,28,30,32))
+image.plot(lons,lats,temp.lat2,col=my.colors(1000),legend.lab = "Temp",legend.only=FALSE, zlim=c(22,32),axis.args=list(at=e, labels=names(e)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
