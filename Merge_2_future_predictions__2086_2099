@@ -1,0 +1,681 @@
+###libraries###
+library(ncdf4)
+library(fields)
+library(maptools)
+library(abind)
+######
+setwd("/Volumes/GoogleDrive/Shared Drives/TrEnCh/Projects/Murilo/SST future predictions/ACESS1.3 RCP8.5/")
+setwd("E:/Abiotic dataset/SST/future predictions/RCP 8.5")
+dir()
+
+Acess_2086_2095=nc_open("tos_day_ACCESS1-3_rcp85_r1i1p1_20860101-20951231.nc")
+Acess_2096_2100=nc_open("tos_day_ACCESS1-3_rcp85_r1i1p1_20960101-21001231.nc")
+
+sea_surface=ncvar_get(Acess_2086_2095,"tos")#get infor bout SST
+sea_surface = sea_surface - 273.15# convert units from kelvin to celcius
+lons= ncvar_get(Acess_2086_2095,"lon") #get info about long
+lons= lons[,1]
+lats= ncvar_get(Acess_2086_2095,"lat") #get info about latitude
+lats= lats[1,]
+times= ncvar_get(Acess_2086_2095,"time") #get info about time
+times1= as.Date(times, origin="0001-01-01")#convert to Julian date, since 0001-01-01
+
+sea_surface2=ncvar_get(Acess_2096_2100,"tos")#get info about SST
+sea_surface2 = sea_surface2 - 273.15# convert units from kelvin to celcius
+lons2= ncvar_get(Acess_2096_2100,"lon")#get info about long
+lons2= lons2[,1]
+lats2= ncvar_get(Acess_2096_2100,"lat")#get info about latitude
+lats2= lats2[1,]
+times2= ncvar_get(Acess_2096_2100,"time") #get info about time
+times2.1= as.Date(times2, origin="0011-01-02")#convert to Julian date, since 0001-01-01 -need to check eveytime
+
+#convert longituide
+convert.lon= function(r0) ifelse(r0 > 180, -360 + r0, r0)
+lons= convert.lon(lons)
+lons2= convert.lon(lons2)
+
+#estimate years and days
+years=as.numeric(format(times1,"%Y"))
+days= as.numeric(format(times1,"%j"))
+
+years2=as.numeric(format(times2.1,"%Y"))
+days2= as.numeric(format(times2.1,"%j"))
+
+#subset data to area of interest
+lats.sel= which(lats>(-28)&lats<(29))#specific area of interest in atlantic ocean
+lons.sel= which(lons>(-100)&lons<(-33))#specific area of interest in atlantic ocean
+surface_temp=sea_surface[lons.sel,lats.sel,] #using the specified area
+dim(surface_temp)
+
+lats.sel2= which(lats2>(-28)&lats2<(29))#specific area of interest in atlantic ocean
+lons.sel2= which(lons2>(-100)&lons2<(-33))#specific area of interest in atlantic ocean
+surface_temp2=sea_surface2[lons.sel2,lats.sel2,] #using the specified area
+dim(surface_temp2)
+
+#abind merge the two files
+sst_2086_2100= abind(surface_temp, surface_temp2, along=3)
+dim(sst_2086_2100)
+
+#remove pacific ocean info
+for(lat.id in 1:117){
+  na1=which.max(is.na(sst_2086_2100[,lat.id,]))
+  sst_2086_2100[1:na1,lat.id,]<-NA  
+}
+
+#delete +4 cell data from South American Atlantic coast 
+nend= dim(sst_2086_2100)[1]
+for(lat.id in 1:89){
+  na1= min(which(is.na(sst_2086_2100[,lat.id,1])))
+  #delete values before first NA
+  sst_2086_2100[1:na1,lat.id,]<-NA 
+  #find coast
+  coast= min(which(!is.na(sst_2086_2100[,lat.id,1]))) 
+  #find next island na
+  w.isl=min(which(is.na(sst_2086_2100[coast:nend,lat.id,1])))  
+  while( is.finite(w.isl) ){
+    #keep 4 coastal cells on each side
+    if ((coast+w.isl-4)>(coast+4)) sst_2086_2100[(coast+4):(coast+w.isl-4),lat.id,]<-NA
+    #find next coast
+    ind= coast+w.isl
+    coast= min(which(!is.na(sst_2086_2100[ind:nend,lat.id,1]))) 
+    coast= ind+coast
+    #find next island
+    w.isl=min(which(is.na(sst_2086_2100[coast:nend,lat.id,1])))
+  }
+  #last coastal grid cells
+  if(coast+4 <nend) sst_2086_2100[(coast+4):nend,lat.id,]<-NA 
+}
+
+#removing cells without islands
+for(lat.id in 89){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+96)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+96):dim(sst_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 90:100){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+26)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+26):dim(sst_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 101){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+24)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+24):dim(sst_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 102){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+37)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+37):dim(sst_2086_2100)[1],lat.id,]<-NA  
+}
+for(lat.id in 103){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+29)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+29):dim(sst_2086_2100)[1],lat.id,]<-NA  
+}
+for(lat.id in 104:109){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+30)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+30):dim(sst_2086_2100)[1],lat.id,]<-NA  
+}
+for(lat.id in 110:112){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+28)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+28):dim(sst_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 113:114){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+23)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+23):dim(sst_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 115:117){
+  na2=which.min(is.na(sst_2086_2100[,lat.id,]))  
+  if((na2+21)<dim(sst_2086_2100)[1]) sst_2086_2100[(na2+21):dim(sst_2086_2100)[1],lat.id,]<-NA  
+}
+
+#update latitudes and longitudes
+lons= lons[lons.sel]
+lats= lats[lats.sel]
+lons2= lons2[lons.sel2]
+lats2= lats2[lats.sel2]
+
+#Plot
+my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))#colors to use in graphs
+e<-(c(15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45))
+image.plot(lons,lats,sst_2086_2100[,,30], col=my.colors(34),legend.lab = "Superficial Sea Temperature",axis.args=list(at=e, labels=names(e)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
+
+#Set species' parameters Ucides cordatus
+To=12.37 ###lower developmental temperature
+G=285.71 ### daily growing degree days
+
+survi.function=function(day,temp){
+  surv= 1.161898  -1.289353e-01*day + 2.447864e-02*day^2 -9.780041e-04*day^3 + 8.937547e-06*day^4 -5.323727e-03*temp +4.684993e-03*day^1*temp  -1.010040e-03*day^2*temp  +3.879397e-05*day^3*temp  -3.207424e-07*day^4*temp
+  #constraint from zero to 1
+  surv[surv<0]=0
+  surv[surv>1]=1
+  return(surv)  
+}
+
+# selecting days from January 1st to March 31th and October 1st to December 31th of yeach year
+times2=c(1:121,275:485,640:850,1005:1216,1370:1583,1737:1947,2101:2311,2466:2676,2831:3041,3197:3407,3562:3772,3926:4136,4286:4478)
+#select seasons, start and end dates
+#inds=cbind(c(275, 640, 1005, 1370, 1737, 2101, 2466, 2831, 3197, 3562),c(457,821,1186,1553,1917,2282,2647,3013,3378,3653))
+inds=cbind(c(274, 639, 1004, 1369, 1736, 2100, 2465, 2830, 3196,3561,3925,4285),c(485,850,1216,1580,1947,2311,2676,3041,3407,3772,4136,4478))
+years.inds= years[times2]
+days.inds= days[times2]
+
+times3=c(275:366,1:121)# selecting data from seasons from October 1st to March 31th
+
+#make arrays for output, add dimension for future periods
+#development
+devel.out= array(NA, dim=c(length(lons),length(lats),length(times3),nrow(inds) ))
+#survival
+surv.out= array(NA, dim=c(length(lons),length(lats),length(times3),nrow(inds) ))
+for(lon.k in 1:length(lons)){ #loop through longitude
+  lats.sel2= which(!is.na(sst_2086_2100[lon.k,,1]))#find latitudes with data
+  
+  if(length(lats.sel2)>0){ #check there's cells with data
+    
+    for(lat.k in lats.sel2){ #loop through latitudes with data
+      
+      for(yr.k in 1:nrow(inds)){ #loop through seasons
+        
+        #extract start and end dates
+        inds.seas= inds[yr.k,1]:inds[yr.k,2] 
+        
+        #estimate growing degree days
+        GDDs= sst_2086_2100[lon.k,lat.k,inds.seas]-To #how many growing degree days per day
+        #cummulative sum of GDDs
+        cumGDDs=cumsum(GDDs) 
+        
+        for(time.k in 1:length(inds.seas)){ #estimate development time starting at different days
+          
+          #substract off starting value
+          cumGDDs.t= cumGDDs-cumGDDs[time.k]
+          
+          #find first date the exceed G
+          dev.ind= which.max(cumGDDs.t>G) - time.k  #development duration
+          if(dev.ind>0) devel.out[lon.k,lat.k,time.k,yr.k]= dev.ind
+          #To sAVE: DOY days.inds[inds.seas[dev.ind]]
+          
+          #estimate survival until reaching G
+          #mean temp
+          if(dev.ind>1){#if complete development
+            temps= mean(sst_2086_2100[lon.k,lat.k,inds.seas[time.k]:inds.seas[dev.ind+time.k]])
+            #estimate survival
+            surv.out[lon.k,lat.k,time.k,yr.k]= survi.function(dev.ind, temps)
+          } #end check complete development
+        } #end loop timing
+      } #end loop seasons
+    }#end latitude loop
+  } #end check for data
+} #end longitude loop
+
+devel.out2=devel.out[,,1:183,]#selecting only the breeding season days 
+surv.out2=surv.out[,,1:183,]
+times4=c(275:366,1:91)
+
+#average surv, devel and temp by row per year
+surv.lat= apply(surv.out2, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(surv.lat),file="surv_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+devel.lat= apply(devel.out2, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(devel.lat),file="devel_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+inds2=cbind(c(3196,3561),c(3407,3772))
+temp.out=array(sst_2086_2100, dim=c(length(lons),length(lats),length(times4),nrow(inds2)))
+temp.lat2= apply(temp.out, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(temp.lat2),file="temp_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+################MRI
+memory.limit(size=50000)#inscrese the memory RAM size
+my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))#colors to use in graphs
+
+setwd("E:/Abiotic dataset/SST/future predictions/RCP 4.5")
+dir()
+
+####################MRI
+mri_2016_2025=nc_open("tos_day_MRI-CGCM3_rcp45_r1i1p1_20860101-20951231.nc")
+mri_2026_2035=nc_open("tos_day_MRI-CGCM3_rcp45_r1i1p1_20960101-21001231.nc")
+
+#MRI
+sea_surface.mri=ncvar_get(mri_2016_2025,"tos")#get infor bout SST
+sea_surface.mri=replace(sea_surface.mri,sea_surface.mri<1,NA)#replace 0 values from continent areas by NA
+sea_surface.mri = sea_surface.mri - 273.15# convert units from kelvin to celcius
+lons.mri= ncvar_get(mri_2016_2025,"lon") #get info about long
+lons.mri= lons.mri[,1]
+lats.mri= ncvar_get(mri_2016_2025,"lat") #get info about latitude
+lats.mri= lats.mri[1,]
+times.mri= ncvar_get(mri_2016_2025,"time") #get info about time
+times1.mri= as.Date(times.mri, origin="1850-01-01")#convert to Julian date, since 0001-01-01
+
+sea_surface.mri2=ncvar_get(mri_2026_2035,"tos")#get infor bout SST
+sea_surface.mri2=replace(sea_surface.mri2,sea_surface.mri2<1,NA)#replace 0 values from continent areas by NA
+sea_surface.mri2= sea_surface.mri2 - 273.15# convert units from kelvin to celcius
+lons.mri2= ncvar_get(mri_2026_2035,"lon") #get info about long
+lons.mri2= lons.mri2[,1]
+lats.mri2= ncvar_get(mri_2026_2035,"lat") #get info about latitude
+lats.mri2= lats.mri2[1,]
+times.mri2= ncvar_get(mri_2026_2035,"time") #get info about time
+times12.mri= as.Date(times.mri2, origin="1850-01-01")#convert to Julian date, since 0001-01-01
+
+#convert longituide
+convert.lon= function(r0) ifelse(r0 > 180, -360 + r0, r0)
+lons.mri= convert.lon(lons.mri)
+lons.mri2= convert.lon(lons.mri2)
+
+#estimate years and days
+years.mri=as.numeric(format(times1,"%Y"))
+days.mri= as.numeric(format(times1,"%j"))
+years.mri2=as.numeric(format(times12.mri,"%Y"))
+days.mri2= as.numeric(format(times12.mri,"%j"))
+
+#make arrays for mri output
+sst.mri= array(NA, dim= dim(surface_temp))
+sst.mri2= array(NA, dim= dim(surface_temp2))
+
+#match times
+match.times2= match(times1, times1.mri)
+match.times3= match(times2.1, times12.mri)
+
+#matching function
+findit = function(x,vec){ 
+  y = abs(vec - x) 
+  if(all(is.na(y)))NA else which.min(y) }
+
+#find closest lats and lons
+match.lats2= sapply(lats,findit,lats.mri) 
+match.lons2= sapply(lons,findit,lons.mri)
+
+match.lats3= sapply(lats2,findit,lats.mri2) 
+match.lons3= sapply(lons2,findit,lons.mri2)
+
+sst.mri= sea_surface.mri[match.lons2, match.lats2, match.times2]
+sst.mri2= sea_surface.mri2[match.lons3, match.lats3, match.times3]
+
+#abind merge the two files
+mri_2086_2100= abind(sst.mri, sst.mri2, along=3)
+dim(mri_2086_2100)
+
+years_2086_2100= abind(years.mri, years.mri2, along=1)
+dim(years_2086_2100)
+
+days_2086_2100= abind(days.mri, days.mri2, along=1)
+dim(days_2086_2100)
+
+#remove pacific ocean info
+for(lat.id in 1:117){
+  na1=which.max(is.na(mri_2086_2100[,lat.id,]))
+  mri_2086_2100[1:na1,lat.id,]<-NA  
+}
+
+#delete +4 cell data from South American Atlantic coast 
+nend= dim(mri_2086_2100)[1]
+for(lat.id in 1:89){
+  na1= min(which(is.na(mri_2086_2100[,lat.id,1])))
+  #delete values before first NA
+  mri_2086_2100[1:na1,lat.id,]<-NA 
+  #find coast
+  coast= min(which(!is.na(mri_2086_2100[,lat.id,1]))) 
+  #find next island na
+  w.isl=min(which(is.na(mri_2086_2100[coast:nend,lat.id,1])))  
+  while( is.finite(w.isl) ){
+    #keep 4 coastal cells on each side
+    if ((coast+w.isl-4)>(coast+4)) mri_2086_2100[(coast+4):(coast+w.isl-4),lat.id,]<-NA
+    #find next coast
+    ind= coast+w.isl
+    coast= min(which(!is.na(mri_2086_2100[ind:nend,lat.id,1]))) 
+    coast= ind+coast
+    #find next island
+    w.isl=min(which(is.na(mri_2086_2100[coast:nend,lat.id,1])))
+  }
+  #last coastal grid cells
+  if(coast+4 <nend) mri_2086_2100[(coast+4):nend,lat.id,]<-NA 
+}
+
+#removing cells without islands
+for(lat.id in 89){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+96)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+96):dim(mri_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 90:100){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+26)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+26):dim(mri_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 101){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+24)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+24):dim(mri_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 102){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+37)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+37):dim(mri_2086_2100)[1],lat.id,]<-NA  
+}
+for(lat.id in 103){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+29)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+29):dim(mri_2086_2100)[1],lat.id,]<-NA  
+}
+for(lat.id in 104:109){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+30)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+30):dim(mri_2086_2100)[1],lat.id,]<-NA  
+}
+for(lat.id in 110:112){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+28)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+28):dim(mri_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 113:114){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+23)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+23):dim(mri_2086_2100)[1],lat.id,]<-NA  
+} 
+for(lat.id in 115:117){
+  na2=which.min(is.na(mri_2086_2100[,lat.id,]))  
+  if((na2+21)<dim(mri_2086_2100)[1]) mri_2086_2100[(na2+21):dim(mri_2086_2100)[1],lat.id,]<-NA  
+}
+
+#Plot
+my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))#colors to use in graphs
+e<-(c(15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45))
+image.plot(lons,lats,mri_2086_2100[,,30], col=my.colors(34),legend.lab = "Superficial Sea Temperature",axis.args=list(at=e, labels=names(e)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
+
+#Set species' parameters Ucides cordatus
+To=12.37 ###lower developmental temperature
+G=285.71 ### daily growing degree days
+
+#survival function
+survi.function=function(day,temp){
+  surv= 1.161898  -1.289353e-01*day + 2.447864e-02*day^2 -9.780041e-04*day^3 + 8.937547e-06*day^4 -5.323727e-03*temp +4.684993e-03*day^1*temp  -1.010040e-03*day^2*temp  +3.879397e-05*day^3*temp  -3.207424e-07*day^4*temp
+  #constraint from zero to 1
+  surv[surv<0]=0
+  surv[surv>1]=1
+  return(surv)  
+}
+
+# selecting days from January 1st to March 31th and October 1st to December 31th of yeach year
+times2=c(1:121,275:485,640:850,1005:1216,1370:1583,1737:1947,2101:2311,2466:2676,2831:3041,3197:3407,3562:3772,3926:4136,4286:4478)
+#select seasons, start and end dates
+#inds=cbind(c(275, 640, 1005, 1370, 1737, 2101, 2466, 2831, 3197, 3562),c(457,821,1186,1553,1917,2282,2647,3013,3378,3653))
+inds=cbind(c(274, 639, 1004, 1369, 1736, 2100, 2465, 2830, 3196,3561,3925,4285),c(485,850,1216,1580,1947,2311,2676,3041,3407,3772,4136,4478))
+years.inds= years_2086_2100[times2]
+days.inds= days_2086_2100[times2]
+
+times3=c(275:366,1:121)# selecting data from seasons from October 1st to March 31th
+
+#make arrays for output, add dimension for future periods
+#development
+devel.out= array(NA, dim=c(length(lons),length(lats),length(times3),nrow(inds) ))
+#survival
+surv.out= array(NA, dim=c(length(lons),length(lats),length(times3),nrow(inds) ))
+for(lon.k in 1:length(lons)){ #loop through longitude
+  lats.sel2= which(!is.na(mri_2086_2100[lon.k,,1]))#find latitudes with data
+  
+  if(length(lats.sel2)>0){ #check there's cells with data
+    
+    for(lat.k in lats.sel2){ #loop through latitudes with data
+      
+      for(yr.k in 1:nrow(inds)){ #loop through seasons
+        
+        #extract start and end dates
+        inds.seas= inds[yr.k,1]:inds[yr.k,2] 
+        
+        #estimate growing degree days
+        GDDs= mri_2086_2100[lon.k,lat.k,inds.seas]-To #how many growing degree days per day
+        #cummulative sum of GDDs
+        cumGDDs=cumsum(GDDs) 
+        
+        for(time.k in 1:length(inds.seas)){ #estimate development time starting at different days
+          
+          #substract off starting value
+          cumGDDs.t= cumGDDs-cumGDDs[time.k]
+          
+          #find first date the exceed G
+          dev.ind= which.max(cumGDDs.t>G) - time.k  #development duration
+          if(dev.ind>0) devel.out[lon.k,lat.k,time.k,yr.k]= dev.ind
+          #To sAVE: DOY days.inds[inds.seas[dev.ind]]
+          
+          #estimate survival until reaching G
+          #mean temp
+          if(dev.ind>1){#if complete development
+            temps= mean(mri_2086_2100[lon.k,lat.k,inds.seas[time.k]:inds.seas[dev.ind+time.k]])
+            #estimate survival
+            surv.out[lon.k,lat.k,time.k,yr.k]= survi.function(dev.ind, temps)
+          } #end check complete development
+        } #end loop timing
+      } #end loop seasons
+    }#end latitude loop
+  } #end check for data
+} #end longitude loop
+devel.out2=devel.out[,,1:183,]#selecting only the breeding season days 
+surv.out2=surv.out[,,1:183,]
+times4=c(275:366,1:91)
+
+#average surv, devel and temp by row per year
+surv.lat= apply(surv.out2, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(surv.lat),file="surv_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+devel.lat= apply(devel.out2, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(devel.lat),file="devel_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+inds2=cbind(c(3196,3561),c(3407,3772))
+temp.out=array(mri_2086_2100, dim=c(length(lons),length(lats),length(times4),nrow(inds2)))
+temp.lat2= apply(temp.out, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(temp.lat2),file="temp_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+#CNRM
+memory.limit(size=50000)#inscrese the memory RAM siz
+cnrm_2016_2025=nc_open("tos_day_CNRM-CM5_rcp45_r1i1p1_20860101-20951231.nc")
+cnrm_2026_2035=nc_open("tos_day_CNRM-CM5_rcp45_r1i1p1_20960101-21001231.nc")
+
+#extract variables
+sea_surface.cnrm=ncvar_get(cnrm_2016_2025,"tos")#get infor bout SST
+sea_surface.cnrm = sea_surface.cnrm - 273.15# convert units from kelvin to celcius
+lons.cnrm= ncvar_get(cnrm_2016_2025,"lon") #get info about long
+lons.cnrm= lons.cnrm[,1]
+lats.cnrm= ncvar_get(cnrm_2016_2025,"lat") #get info about latitude
+lats.cnrm= lats.cnrm[1,]
+times.cnrm= ncvar_get(cnrm_2016_2025,"time") #get info about time
+times1.cnrm= as.Date(times.cnrm, origin="2006-01-01")#convert to Julian date
+
+sea_surface.cnrm2=ncvar_get(cnrm_2026_2035,"tos")#get infor bout SST
+lons.cnrm2= ncvar_get(cnrm_2026_2035,"lon") #get info about long
+lons.cnrm2= lons.cnrm2[,1]
+lats.cnrm2= ncvar_get(cnrm_2026_2035,"lat") #get info about latitude
+lats.cnrm2= lats.cnrm2[1,]
+times.cnrm2= ncvar_get(cnrm_2026_2035,"time") #get info about time
+times1.cnrm2= as.Date(times.cnrm2, origin="2006-01-01")#convert to Julian date
+
+#convert longituide
+convert.lon= function(r0) ifelse(r0 > 180, -360 + r0, r0)
+lons.cnrm= convert.lon(lons.cnrm)
+lons.cnrm2= convert.lon(lons.cnrm2)
+
+#estimate years and days
+years.cnrm=as.numeric(format(times1.cnrm,"%Y"))
+days.cnrm= as.numeric(format(times1.cnrm,"%j"))
+years.cnrm2=as.numeric(format(times1.cnrm2,"%Y"))
+days.cnrm2= as.numeric(format(times1.cnrm2,"%j"))
+
+#make arrays for mri output
+sst.cnrm= array(NA, dim= dim(surface_temp))
+sst.cnrm2= array(NA, dim= dim(surface_temp2))
+
+#match times
+match.times2= match(times1, times1.cnrm)
+match.times3= match(times2.1, times1.cnrm2)
+
+#matching function
+findit = function(x,vec){ 
+  y = abs(vec - x) 
+  if(all(is.na(y)))NA else which.min(y) }
+
+#find closest lats and lons
+match.lats2= sapply(lats,findit,lats.cnrm) 
+match.lons2= sapply(lons,findit,lons.cnrm)
+
+match.lats3= sapply(lats2,findit,lats.cnrm2) 
+match.lons3= sapply(lons2,findit,lons.cnrm2)
+
+sst.cnrm= sea_surface.cnrm[match.lons2, match.lats2, match.times2]
+sst.cnrm2= sea_surface.cnrm2[match.lons3, match.lats3, match.times3]
+
+#abind merge the two files
+cnrm_2016_2035= abind(sst.cnrm, sst.cnrm2, along=3)
+dim(cnrm_2016_2035)
+
+years_2016_2035= abind(years.cnrm, years.cnrm2, along=1)
+dim(years_2016_2035)
+
+days_2016_2035= abind(days.cnrm, days.cnrm2, along=1)
+dim(days_2016_2035)
+
+#remove pacific ocean info
+for(lat.id in 1:117){
+  na1=which.max(is.na(cnrm_2016_2035[,lat.id,]))
+  cnrm_2016_2035[1:na1,lat.id,]<-NA  
+}
+
+#delete +4 cell data from South American Atlantic coast 
+nend= dim(cnrm_2016_2035)[1]
+for(lat.id in 1:89){
+  na1= min(which(is.na(cnrm_2016_2035[,lat.id,1])))
+  #delete values before first NA
+  cnrm_2016_2035[1:na1,lat.id,]<-NA 
+  #find coast
+  coast= min(which(!is.na(cnrm_2016_2035[,lat.id,1]))) 
+  #find next island na
+  w.isl=min(which(is.na(cnrm_2016_2035[coast:nend,lat.id,1])))  
+  while( is.finite(w.isl) ){
+    #keep 4 coastal cells on each side
+    if ((coast+w.isl-4)>(coast+4)) cnrm_2016_2035[(coast+4):(coast+w.isl-4),lat.id,]<-NA
+    #find next coast
+    ind= coast+w.isl
+    coast= min(which(!is.na(cnrm_2016_2035[ind:nend,lat.id,1]))) 
+    coast= ind+coast
+    #find next island
+    w.isl=min(which(is.na(cnrm_2016_2035[coast:nend,lat.id,1])))
+  }
+  #last coastal grid cells
+  if(coast+4 <nend) cnrm_2016_2035[(coast+4):nend,lat.id,]<-NA 
+}
+
+#removing cells without islands
+for(lat.id in 89){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+96)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+96):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+} 
+for(lat.id in 90:100){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+26)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+26):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+} 
+for(lat.id in 101){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+24)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+24):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+} 
+for(lat.id in 102){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+37)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+37):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+}
+for(lat.id in 103){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+29)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+29):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+}
+for(lat.id in 104:109){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+30)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+30):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+}
+for(lat.id in 110:112){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+28)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+28):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+} 
+for(lat.id in 113:114){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+23)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+23):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+} 
+for(lat.id in 115:117){
+  na2=which.min(is.na(cnrm_2016_2035[,lat.id,]))  
+  if((na2+21)<dim(cnrm_2016_2035)[1]) cnrm_2016_2035[(na2+21):dim(cnrm_2016_2035)[1],lat.id,]<-NA  
+}
+
+#Plot
+my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))#colors to use in graphs
+e<-(c(15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45))
+image.plot(lons,lats,cnrm_2016_2035[,,30], col=my.colors(34),legend.lab = "Superficial Sea Temperature",axis.args=list(at=e, labels=names(e)))
+data(wrld_simpl)
+plot(elide(wrld_simpl), add = TRUE)
+
+#Set species' parameters Ucides cordatus
+To=12.37 ###lower developmental temperature
+G=285.71 ### daily growing degree days
+
+#survival function
+survi.function=function(day,temp){
+  surv= 1.161898  -1.289353e-01*day + 2.447864e-02*day^2 -9.780041e-04*day^3 + 8.937547e-06*day^4 -5.323727e-03*temp +4.684993e-03*day^1*temp  -1.010040e-03*day^2*temp  +3.879397e-05*day^3*temp  -3.207424e-07*day^4*temp
+  #constraint from zero to 1
+  surv[surv<0]=0
+  surv[surv>1]=1
+  return(surv)  
+}
+
+# selecting days from January 1st to March 31th and October 1st to December 31th of yeach year
+times2=c(1:121,275:485,640:850,1005:1216,1370:1583,1737:1947,2101:2311,2466:2676,2831:3041,3197:3407,3562:3772,3926:4136,4286:4478)
+#select seasons, start and end dates
+#inds=cbind(c(275, 640, 1005, 1370, 1737, 2101, 2466, 2831, 3197, 3562),c(457,821,1186,1553,1917,2282,2647,3013,3378,3653))
+inds=cbind(c(274, 639, 1004, 1369, 1736, 2100, 2465, 2830, 3196,3561,3925,4285),c(485,850,1216,1580,1947,2311,2676,3041,3407,3772,4136,4478))
+years.inds= years.cnrm[times2]
+days.inds= days.cnrm[times2]
+
+times3=c(275:366,1:121)# selecting data from seasons from October 1st to March 31th
+
+#make arrays for output, add dimension for future periods
+#development
+devel.out= array(NA, dim=c(length(lons),length(lats),length(times3),nrow(inds) ))
+#survival
+surv.out= array(NA, dim=c(length(lons),length(lats),length(times3),nrow(inds) ))
+for(lon.k in 1:length(lons)){ #loop through longitude
+  lats.sel2= which(!is.na(cnrm_2016_2035[lon.k,,1]))#find latitudes with data
+  
+  if(length(lats.sel2)>0){ #check there's cells with data
+    
+    for(lat.k in lats.sel2){ #loop through latitudes with data
+      
+      for(yr.k in 1:nrow(inds)){ #loop through seasons
+        
+        #extract start and end dates
+        inds.seas= inds[yr.k,1]:inds[yr.k,2] 
+        
+        #estimate growing degree days
+        GDDs= cnrm_2016_2035[lon.k,lat.k,inds.seas]-To #how many growing degree days per day
+        #cummulative sum of GDDs
+        cumGDDs=cumsum(GDDs) 
+        
+        for(time.k in 1:length(inds.seas)){ #estimate development time starting at different days
+          
+          #substract off starting value
+          cumGDDs.t= cumGDDs-cumGDDs[time.k]
+          
+          #find first date the exceed G
+          dev.ind= which.max(cumGDDs.t>G) - time.k  #development duration
+          if(dev.ind>0) devel.out[lon.k,lat.k,time.k,yr.k]= dev.ind
+          #To sAVE: DOY days.inds[inds.seas[dev.ind]]
+          
+          #estimate survival until reaching G
+          #mean temp
+          if(dev.ind>1){#if complete development
+            temps= mean(cnrm_2016_2035[lon.k,lat.k,inds.seas[time.k]:inds.seas[dev.ind+time.k]])
+            #estimate survival
+            surv.out[lon.k,lat.k,time.k,yr.k]= survi.function(dev.ind, temps)
+          } #end check complete development
+        } #end loop timing
+      } #end loop seasons
+    }#end latitude loop
+  } #end check for data
+} #end longitude loop
+devel.out2=devel.out[,,1:183,]#selecting only the breeding season days 
+surv.out2=surv.out[,,1:183,]
+times4=c(275:366,1:91)
+
+#average surv, devel and temp by row per year
+surv.lat= apply(surv.out2, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(surv.lat),file="surv_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+devel.lat= apply(devel.out2, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(devel.lat),file="devel_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
+inds2=cbind(c(3196,3561),c(3407,3772))
+temp.out=array(cnrm_2016_2035, dim=c(length(lons),length(lats),length(times4),nrow(inds2)))
+temp.lat2= apply(temp.out, MARGIN=c(2,4), FUN=mean, na.rm=TRUE)
+write.table(print(temp.lat2),file="temp_row2.csv", append=TRUE,sep=",",col.names=FALSE,row.names=FALSE)
+
